@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 function Modal({ isModalOpen, setIsModalOpen }) {
   const [cityName, setCityName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [locationError, setLocationError] = useState(null);
   const navigate = useNavigate();
 
   // fetch cordinates
@@ -53,10 +54,26 @@ function Modal({ isModalOpen, setIsModalOpen }) {
       }
       const currentWeather = await getWeather(data.latitude, data.longitude);
       console.log(currentWeather);
-      navigate("/weather", {state: currentWeather});
+      navigate("/weather", { state: currentWeather });
     } catch (err) {
       console.log(err.message);
     }
+  }
+
+  async function handleUseLocation() {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position?.coords?.latitude;
+        const long = position?.coords?.longitude;
+
+        const data = await getWeather(lat, long);
+        console.log(data);
+        navigate("/weather", { state: data });
+      },
+      (error) => {
+        setLocationError(error?.message);
+      },
+    );
   }
 
   return (
@@ -77,10 +94,15 @@ function Modal({ isModalOpen, setIsModalOpen }) {
             type="text"
             placeholder="Enter your city name"
           />
+          <p className="location-error-message">{locationError}</p>
 
           <div className="or">Or</div>
 
-          <button type="button" className="use-location-button">
+          <button
+            onClick={handleUseLocation}
+            type="button"
+            className="use-location-button"
+          >
             Use Location
           </button>
 
